@@ -1,0 +1,43 @@
+<!-- your_app/templates/your_app/analytics.html -->
+{% extends "base.html" %}  <!-- If you have a base template -->
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Employee Analytics Dashboard</h2>
+
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="deptChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Your chart rendering script -->
+<script>
+// ... (paste the JavaScript code from previous example here)
+</script>
+{% endblock %}
