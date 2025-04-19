@@ -96,7 +96,7 @@ class Command(BaseCommand):
                     )
         for emp in employees:
             for _ in range(random.randint(1, 3)):
-                # Find a manager from the same department as reviewer
+
                 reviewer = random.choice(
                     [e for e in employees if e.is_manager and e.department == emp.department]
                 ) if any(e.is_manager and e.department == emp.department for e in employees) else None

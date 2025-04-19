@@ -15,6 +15,8 @@ from .serializers import (
     AttendanceSerializer, PerformanceSerializer,
     LeaveRecordSerializer, UserSerializer
 )
+from django.shortcuts import render
+
 from django.contrib.auth import authenticate
 import json
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -34,12 +36,6 @@ class RegisterUserView(APIView):
 
             return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-from django.shortcuts import render
-
-def analytics_dashboard(request):
-    """View to render the visualization dashboard"""
-    return render(request, 'analytics.html')
 
 
 class EmployeeVisualizationAPI(APIView):
@@ -72,11 +68,6 @@ class EmployeeVisualizationAPI(APIView):
             'attendance': list(attendance),
             'performance': list(performance)
         })
-
-
-
-
-
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -310,4 +301,9 @@ class EmployeeAttendanceSummaryAPI(APIView):
         }
 
         return Response(response_data)
+
+
+def analytics_dashboard(request):
+
+    return render(request, 'analytics.html')
 
