@@ -4,7 +4,8 @@ from .views import (
     DepartmentAPI, DepartmentDetailAPI,
     EmployeeAPI, EmployeeDetailAPI,
     AttendanceAPI, AttendanceDetailAPI,
-    EmployeePerformanceAPI, EmployeeAttendanceSummaryAPI, RegisterUserView, CustomTokenObtainPairView
+    EmployeePerformanceAPI, EmployeeAttendanceSummaryAPI, RegisterUserView, CustomTokenObtainPairView,
+    EmployeeVisualizationAPI, analytics_dashboard
 )
 
 urlpatterns = [
@@ -24,4 +25,8 @@ urlpatterns = [
     path('employees/<int:employee_id>/performances/create/', EmployeePerformanceAPI.as_view(), name='performance-create'),
 
     path('employees/<int:employee_id>/attendance-summary/', EmployeeAttendanceSummaryAPI.as_view(), name='attendance-summary'),
+
+    path('visualization/', EmployeeVisualizationAPI.as_view(), name='viz-data'),
+    path('analytics/', analytics_dashboard, name='analytics'),
+
 ]

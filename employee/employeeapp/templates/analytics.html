@@ -1,43 +1,176 @@
-<!-- your_app/templates/your_app/analytics.html -->
-{% extends "base.html" %}  <!-- If you have a base template -->
 
+{% extends "base.html" %}
 {% block content %}
-<div class="container mt-4">
-    <h2>Employee Analytics Dashboard</h2>
 
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <canvas id="deptChart"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <canvas id="attendanceChart"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
+<h2 class="mb-4">Employee Data Visualization</h2>
 
-    <div class="row mt-4">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body">
-                    <canvas id="performanceChart"></canvas>
-                </div>
-            </div>
+<div class="row mb-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <ul class="nav nav-tabs card-header-tabs">
+          <li class="nav-item">
+            <a class="nav-link active" href="#chartjs" data-bs-toggle="tab">Chart.js</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#plotly" data-bs-toggle="tab">Plotly</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#d3js" data-bs-toggle="tab">D3.js</a>
+          </li>
+        </ul>
+      </div>
+      <div class="card-body">
+        <div class="tab-content">
+          <div class="tab-pane active" id="chartjs">
+            <canvas id="chartJsDept"></canvas>
+          </div>
+          <div class="tab-pane" id="plotly">
+            <div id="plotlyChart"></div>
+          </div>
+          <div class="tab-pane" id="d3js">
+            <div id="d3Chart"></div>
+          </div>
         </div>
+      </div>
     </div>
+  </div>
+
+  <div class="col-md-6">
+
+    <div class="card">
+      <div class="card-body">
+        <canvas id="attendanceChart"></canvas>
+      </div>
+    </div>
+  </div>
 </div>
 
-<!-- Include Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<!-- Your chart rendering script -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+
 <script>
-// ... (paste the JavaScript code from previous example here)
+// Fetch data from API
+fetch('/api/visualization/')
+  .then(response => response.json())
+  .then(data => {
+    renderChartJS(data);
+    renderPlotly(data);
+    renderD3(data);
+  });
+
+/* Chart.js Implementation */
+function renderChartJS(data) {
+  // Department Chart
+  new Chart(document.getElementById('chartJsDept'), {
+    type: 'bar',
+    data: {
+      labels: data.departments.map(d => d.name),
+      datasets: [{
+        label: 'Employees',
+        data: data.departments.map(d => d.employee_count),
+        backgroundColor: 'rgba(54, 162, 235, 0.7)'
+      }, {
+        label: 'Avg Salary',
+        data: data.departments.map(d => d.avg_salary),
+        backgroundColor: 'rgba(255, 99, 132, 0.7)',
+        type: 'line',
+        yAxisID: 'y1'
+      }]
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true },
+        y1: { position: 'right', beginAtZero: true }
+      }
+    }
+  });
+
+  // Attendance Chart
+  new Chart(document.getElementById('attendanceChart'), {
+    type: 'pie',
+    data: {
+      labels: data.attendance.map(a => a.status),
+      datasets: [{
+        data: data.attendance.map(a => a.count),
+        backgroundColor: [
+          '#4bc0c0', '#ff6384', '#ffcd56', '#36a2eb'
+        ]
+      }]
+    }
+  });
+}
+
+/* Plotly Implementation */
+function renderPlotly(data) {
+  const plotlyData = [{
+    x: data.departments.map(d => d.name),
+    y: data.departments.map(d => d.employee_count),
+    type: 'bar',
+    name: 'Employees'
+  }, {
+    x: data.departments.map(d => d.name),
+    y: data.departments.map(d => d.avg_salary),
+    yaxis: 'y2',
+    type: 'scatter',
+    mode: 'lines+markers',
+    name: 'Avg Salary',
+    line: {color: '#ff6384'}
+  }];
+
+  Plotly.newPlot('plotlyChart', plotlyData, {
+    yaxis: {title: 'Employee Count'},
+    yaxis2: {
+      title: 'Average Salary',
+      overlaying: 'y',
+      side: 'right'
+    }
+  });
+}
+
+/* D3.js Implementation */
+function renderD3(data) {
+  const margin = {top: 20, right: 30, bottom: 40, left: 40};
+  const width = 500 - margin.left - margin.right;
+  const height = 300 - margin.top - margin.bottom;
+
+  const svg = d3.select("#d3Chart")
+    .append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
+
+  // X axis
+  const x = d3.scaleBand()
+    .range([0, width])
+    .domain(data.departments.map(d => d.name))
+    .padding(0.2);
+
+  svg.append("g")
+    .attr("transform", `translate(0,${height})`)
+    .call(d3.axisBottom(x));
+
+  // Y axis
+  const y = d3.scaleLinear()
+    .domain([0, d3.max(data.departments, d => d.employee_count)])
+    .range([height, 0]);
+
+  svg.append("g")
+    .call(d3.axisLeft(y));
+
+  // Bars
+  svg.selectAll("rect")
+    .data(data.departments)
+    .enter()
+    .append("rect")
+    .attr("x", d => x(d.name))
+    .attr("y", d => y(d.employee_count))
+    .attr("width", x.bandwidth())
+    .attr("height", d => height - y(d.employee_count))
+    .attr("fill", "#4bc0c0");
+}
 </script>
 {% endblock %}

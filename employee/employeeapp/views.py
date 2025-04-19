@@ -1,4 +1,7 @@
-from django.db.models import Avg
+from datetime import datetime, timedelta
+
+from django.db.models import Avg, Count
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -31,6 +34,49 @@ class RegisterUserView(APIView):
 
             return Response({'message': 'User registered successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from django.shortcuts import render
+
+def analytics_dashboard(request):
+    """View to render the visualization dashboard"""
+    return render(request, 'analytics.html')
+
+
+class EmployeeVisualizationAPI(APIView):
+    """Endpoint to provide data for visualizations"""
+
+    def get(self, request):
+        # Department stats
+        departments = Department.objects.annotate(
+            employee_count=Count('employees'),
+            avg_salary=Avg('employees__salary')
+        ).values('name', 'employee_count', 'avg_salary')
+
+        # Attendance (last 30 days)
+        date_threshold = datetime.now() - timedelta(days=30)
+        attendance = Attendance.objects.filter(
+            date__gte=date_threshold
+        ).values('status').annotate(
+            count=Count('id')
+        )
+
+        # Performance data
+        performance = Performance.objects.values(
+            'employee__department__name'
+        ).annotate(
+            avg_score=Avg('score')
+        )
+
+        return Response({
+            'departments': list(departments),
+            'attendance': list(attendance),
+            'performance': list(performance)
+        })
+
+
+
+
+
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
